@@ -1,47 +1,36 @@
-// models/User.js
+// models/EmergencyContact.js
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const User = sequelize.define(
-    "User",
+  const EmergencyContact = sequelize.define(
+    "EmergencyContact",
     {
       id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      fullName: {
+      name: {
         type: DataTypes.STRING,
         allowNull: false,
-        validate: {
-          notEmpty: true,
-          len: [2, 100],
-        },
       },
-      cellNumber: {
+      phone: {
         type: DataTypes.STRING,
+        allowNull: false,
         validate: {
           len: [10, 15],
         },
       },
-      address: {
+      relation: {
         type: DataTypes.STRING,
+        allowNull: true,
       },
-      allergies: {
-        type: DataTypes.TEXT,
-        defaultValue: "",
-      },
-      conditions: {
-        type: DataTypes.TEXT,
-        defaultValue: "",
-      },
-      // Remove email from here entirely
     },
     {
       timestamps: true,
-      tableName: "users",
+      tableName: "emergency_contacts",
     }
   );
 
-  return User;
+  return EmergencyContact;
 };

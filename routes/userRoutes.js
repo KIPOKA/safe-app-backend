@@ -7,7 +7,15 @@ const router = express.Router();
 // Auth routes
 router.post("/register", userController.registerUser);
 router.post("/login", userController.loginUser);
-router.put("/profile", userController.updateProfile);
-router.get("/", userController.getAllUsers);
 
-module.exports = router;   
+// Profile routes
+router.put("/update-profile", userController.updateProfile);
+
+// User management routes
+router.get("/", userController.getAllUsers);
+router.get("/:email", userController.getUserByEmail);
+
+// Delete user route
+router.delete("/delete", userController.deleteUserByEmail);
+
+module.exports = router;

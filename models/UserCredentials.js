@@ -1,29 +1,34 @@
-// models/BloodType.js
+// models/UserCredentials.js
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const BloodType = sequelize.define(
-    "BloodType",
+  const UserCredentials = sequelize.define(
+    "UserCredentials",
     {
       id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
       },
-      blood_id: {
-        type: DataTypes.STRING,
+      userId: {
+        type: DataTypes.INTEGER,
         allowNull: false,
       },
-      type: {
+      email: {
+        type: DataTypes.STRING,
+        allowNull: false,
+        unique: true,
+      },
+      password: {
         type: DataTypes.STRING,
         allowNull: false,
       },
     },
     {
-      timestamps: false,
-      tableName: "blood_types",
+      timestamps: true,
+      tableName: "user_credentials",
     }
   );
 
-  return BloodType;
+  return UserCredentials;
 };
