@@ -213,7 +213,13 @@ exports.updateProfile = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
+      attributes: { exclude: ["password"] }, // exclude password from User table if any
       include: [
+        {
+          model: UserCredentials,
+          as: "credentials",
+          attributes: ["email"], // fetch email from credentials
+        },
         { model: BloodType, as: "bloodType", attributes: ["id", "type"] },
         {
           model: MedicalAid,
@@ -226,9 +232,11 @@ exports.getAllUsers = async (req, res) => {
     });
 
     const responseJSON = users.map((u) => {
-      const userData = u.toJSON();
-      delete userData.password;
-      return userData;
+      const user = u.toJSON();
+      // Optionally flatten the email for convenience
+      user.email = user.credentials?.email || null;
+      delete user.credentials;
+      return user;
     });
 
     res.json({ users: responseJSON });

@@ -3,7 +3,7 @@ const morgan = require("morgan");
 const cors = require("cors");
 const db = require("./models");
 const userRoutes = require("./routes/userRoutes");
-
+const notificationRoutes = require("./routes/notificationRoutes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -14,6 +14,7 @@ app.use(morgan("combined"));
 
 // Routes
 app.use("/api/users", userRoutes);
+app.use("/api/notifications", notificationRoutes);
 
 // Basic route for testing
 app.get("/", (req, res) => {

@@ -8,7 +8,7 @@ module.exports = (sequelize) => {
       medicalAidId: {
         type: DataTypes.INTEGER,
         references: {
-          model: "medical_aids", // table name
+          model: "medical_aids",
           key: "id",
         },
       },

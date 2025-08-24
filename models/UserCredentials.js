@@ -1,34 +1,22 @@
-// models/UserCredentials.js
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const UserCredentials = sequelize.define(
+  return sequelize.define(
     "UserCredentials",
     {
-      id: {
-        type: DataTypes.INTEGER,
-        autoIncrement: true,
-        primaryKey: true,
-      },
-      userId: {
-        type: DataTypes.INTEGER,
-        allowNull: false,
-      },
+      id: { type: DataTypes.INTEGER, primaryKey: true, autoIncrement: true },
+      userId: { type: DataTypes.INTEGER, allowNull: false },
       email: {
         type: DataTypes.STRING,
         allowNull: false,
-        unique: true,
+        unique: true, // now safe
+        validate: { isEmail: true },
       },
-      password: {
-        type: DataTypes.STRING,
-        allowNull: false,
-      },
+      password: { type: DataTypes.STRING, allowNull: false },
     },
     {
-      timestamps: true,
       tableName: "user_credentials",
+      timestamps: true,
     }
   );
-
-  return UserCredentials;
 };
