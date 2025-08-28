@@ -6,6 +6,7 @@ const {
   MedicalAid,
   NotificationStatus,
   EmergencyType,
+  MessageSolution,
 } = require("../models");
 
 // Create a new notification
@@ -133,23 +134,29 @@ exports.getNotificationsByUser = async (req, res) => {
 };
 
 // ==================== UPDATE STATUS ====================
+// controllers/notificationController.js
 exports.updateNotificationStatus = async (req, res) => {
-  const { notificationId, statusId } = req.body;
+  const { notificationId, message, statusId } = req.body;
+
+  if (!notificationId || !message) {
+    return res
+      .status(400)
+      .json({ error: "Notification ID and message are required" });
+  }
 
   try {
     const notification = await Notification.findByPk(notificationId);
-    if (!notification)
+    if (!notification) {
       return res.status(404).json({ error: "Notification not found" });
+    }
 
-    notification.statusId = statusId; // update the foreign key
+    notification.status_id = statusId;
+    notification.message = message;
     await notification.save();
 
-    res
-      .status(200)
-      .json({ message: "Notification status updated", notification });
-  } catch (err) {
-    console.error("Update status error:", err);
-    res.status(500).json({ error: "Failed to update notification status" });
+    res.json({ success: true, notification });
+  } catch (error) {
+    res.status(500).json({ error: error.message });
   }
 };
 
@@ -167,5 +174,94 @@ exports.deleteNotification = async (req, res) => {
   } catch (err) {
     console.error("Delete notification error:", err);
     res.status(500).json({ error: "Failed to delete notification" });
+  }
+};
+
+// ==================== GET SINGLE NOTIFICATION ====================
+exports.getNotificationById = async (req, res) => {
+  const { notificationId } = req.params;
+
+  try {
+    const notification = await Notification.findByPk(notificationId, {
+      include: [
+        {
+          model: User,
+          as: "user",
+          attributes: ["id", "fullName", "allergies"],
+          include: [
+            {
+              model: EmergencyContact,
+              as: "emergencyContacts",
+              attributes: ["id", "name", "phone", "relation"],
+            },
+            {
+              model: BloodType,
+              as: "bloodType",
+              attributes: ["id", "type"],
+            },
+            {
+              model: MedicalAid,
+              as: "medicalAid",
+              attributes: ["medicalAidId", "name", "type"],
+            },
+          ],
+        },
+        {
+          model: NotificationStatus,
+          as: "status",
+          attributes: [["status_id", "id"], "name"],
+        },
+        {
+          model: EmergencyType,
+          as: "emergencyType",
+          attributes: [["emergency_id", "id"], "name", "description"],
+        },
+      ],
+    });
+
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+
+    res.status(200).json({ notification });
+  } catch (err) {
+    console.error("Get single notification error:", err);
+    res.status(500).json({ error: "Failed to fetch notification" });
+  }
+};
+
+// controllers/notificationController.js
+
+// ==================== ADD RESOLUTION MESSAGE ====================
+exports.addResolutionMessage = async (req, res) => {
+  const { notificationId, message } = req.body;
+  console.log(req.body);
+
+  try {
+    if (!notificationId || !message) {
+      return res
+        .status(400)
+        .json({ error: "Notification ID and message are required" });
+    }
+
+    const notification = await Notification.findByPk(notificationId);
+    if (!notification) {
+      return res.status(404).json({ error: "Notification not found" });
+    }
+
+    // Save message in MessageSolution table
+    const solution = await MessageSolution.create({
+      notificationId,
+      fromUserId: notification.fromUserId,
+      message,
+      statusId: notification.statusId, // optional: store current status
+    });
+
+    res
+      .status(200)
+      .json({ message: "Resolution message saved successfully", solution });
+  } catch (err) {
+    console.error("Add resolution message error:", err);
+    res.status(500).json({ error: "Failed to save resolution message" });
   }
 };

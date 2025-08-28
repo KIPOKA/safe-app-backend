@@ -1,10 +1,10 @@
 const { DataTypes } = require("sequelize");
 
 module.exports = (sequelize) => {
-  const Notification = sequelize.define(
-    "Notification",
+  const MessageSolution = sequelize.define(
+    "MessageSolution",
     {
-      notification_id: {
+      message_id: {
         type: DataTypes.INTEGER,
         autoIncrement: true,
         primaryKey: true,
@@ -13,17 +13,14 @@ module.exports = (sequelize) => {
         type: DataTypes.INTEGER,
         allowNull: false,
       },
-      emergencyTypeId: {
-        type: DataTypes.INTEGER,
+      resolutionMessage: {
+        type: DataTypes.TEXT,
         allowNull: false,
       },
       statusId: {
+        // FK to NotificationStatus
         type: DataTypes.INTEGER,
         allowNull: false,
-      },
-      resolutionMessage: {
-        type: DataTypes.TEXT,
-        allowNull: true,
       },
       sentAt: {
         type: DataTypes.DATE,
@@ -33,9 +30,9 @@ module.exports = (sequelize) => {
     },
     {
       timestamps: true,
-      tableName: "notifications",
+      tableName: "message_solution",
     }
   );
 
-  return Notification;
+  return MessageSolution;
 };
