@@ -4,6 +4,7 @@ const cors = require("cors");
 const db = require("./models");
 const userRoutes = require("./routes/userRoutes");
 const notificationRoutes = require("./routes/notificationRoutes");
+const analyticsRoutes = require("./routes/analyticsRoutes");
 const app = express();
 const PORT = process.env.PORT || 3000;
 
@@ -15,7 +16,7 @@ app.use(morgan("combined"));
 // Routes
 app.use("/api/users", userRoutes);
 app.use("/api/notifications", notificationRoutes);
-
+app.use("/api/analytics", analyticsRoutes);
 // Basic route for testing
 app.get("/", (req, res) => {
   res.json({ message: "Server is running!" });

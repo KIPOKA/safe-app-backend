@@ -136,13 +136,8 @@ exports.getNotificationsByUser = async (req, res) => {
 // ==================== UPDATE STATUS ====================
 // controllers/notificationController.js
 exports.updateNotificationStatus = async (req, res) => {
-  const { notificationId, message, statusId } = req.body;
-
-  if (!notificationId || !message) {
-    return res
-      .status(400)
-      .json({ error: "Notification ID and message are required" });
-  }
+  const { notificationId, statusId, message } = req.body;
+  console.log(req.body);
 
   try {
     const notification = await Notification.findByPk(notificationId);
@@ -150,13 +145,29 @@ exports.updateNotificationStatus = async (req, res) => {
       return res.status(404).json({ error: "Notification not found" });
     }
 
-    notification.status_id = statusId;
-    notification.message = message;
+    // update notification status
+    notification.statusId = statusId;
     await notification.save();
 
-    res.json({ success: true, notification });
-  } catch (error) {
-    res.status(500).json({ error: error.message });
+    // if resolution message is provided, save it
+    let solution = null;
+    if (message) {
+      solution = await MessageSolution.create({
+        notificationId,
+        fromUserId: notification.fromUserId,
+        resolutionMessage: message,
+        statusId,
+      });
+    }
+
+    res.status(200).json({
+      message: "Status updated successfully",
+      notification,
+      solution,
+    });
+  } catch (err) {
+    console.error("Update status error:", err);
+    res.status(500).json({ error: "Failed to update status" });
   }
 };
 
@@ -263,5 +274,55 @@ exports.addResolutionMessage = async (req, res) => {
   } catch (err) {
     console.error("Add resolution message error:", err);
     res.status(500).json({ error: "Failed to save resolution message" });
+  }
+};
+
+exports.getNotificationAnalytics = async (req, res) => {
+  try {
+    const notifications = await Notification.findAll({
+      include: [
+        { model: User, as: "user", attributes: ["id", "fullName"] },
+        { model: NotificationStatus, as: "status", attributes: ["name"] },
+        { model: EmergencyType, as: "emergencyType", attributes: ["name"] },
+      ],
+    });
+
+    // Status counts
+    const statusCounts = {};
+    notifications.forEach((n) => {
+      const status = n.status?.name || "Unknown";
+      statusCounts[status] = (statusCounts[status] || 0) + 1;
+    });
+
+    // Emergency type counts
+    const typeCounts = {};
+    notifications.forEach((n) => {
+      const type = n.emergencyType?.name || "Unknown";
+      typeCounts[type] = (typeCounts[type] || 0) + 1;
+    });
+
+    // User counts
+    const userCounts = {};
+    notifications.forEach((n) => {
+      const user = n.user?.fullName || "Unknown";
+      userCounts[user] = (userCounts[user] || 0) + 1;
+    });
+
+    // Resolution messages
+    const resolutionStats = {
+      resolved: notifications.filter((n) => n.resolutionMessage).length,
+      unresolved: notifications.filter((n) => !n.resolutionMessage).length,
+    };
+
+    res.status(200).json({
+      totalNotifications: notifications.length,
+      statusCounts,
+      typeCounts,
+      userCounts,
+      resolutionStats,
+    });
+  } catch (err) {
+    console.error("Analytics error:", err);
+    res.status(500).json({ error: "Failed to fetch notification analytics" });
   }
 };
