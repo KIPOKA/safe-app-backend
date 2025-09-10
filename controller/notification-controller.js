@@ -7,17 +7,27 @@ const {
   NotificationStatus,
   EmergencyType,
   MessageSolution,
+  Location,
 } = require("../models");
 
 // Create a new notification
 exports.createNotification = async (req, res) => {
-  const { fromUserId, emergencyTypeId } = req.body;
+  const {
+    fromUserId,
+    emergencyTypeId,
+    latitude,
+    longitude,
+    city,
+    country,
+    description,
+  } = req.body;
 
   try {
-    if (!fromUserId || !emergencyTypeId) {
-      return res
-        .status(400)
-        .json({ error: "User ID and Emergency Type ID are required" });
+    if (!fromUserId || !emergencyTypeId || !latitude || !longitude) {
+      return res.status(400).json({
+        error:
+          "User ID, Emergency Type ID, latitude, and longitude are required",
+      });
     }
 
     // Check if user exists
@@ -40,16 +50,27 @@ exports.createNotification = async (req, res) => {
       return res.status(500).json({ error: "Default status not found" });
     }
 
-    // Create the notification
+    // Create the location
+    const location = await Location.create({
+      latitude,
+      longitude,
+      city: city || null,
+      country: country || null,
+      description: description || "",
+    });
+
+    // Create the notification and associate it with the location
     const notification = await Notification.create({
       fromUserId,
       emergencyTypeId,
-      statusId: defaultStatus.status_id, // <-- set default status
+      statusId: defaultStatus.status_id,
+      locationId: location.id, // <-- associate location here
     });
 
     res.status(201).json({
-      message: "Notification created successfully",
+      message: "Notification created successfully with location",
       notification,
+      location,
     });
   } catch (err) {
     console.error("Notification creation error:", err);
@@ -58,7 +79,6 @@ exports.createNotification = async (req, res) => {
 };
 
 // ==================== GET NOTIFICATIONS ====================
-
 exports.getNotifications = async (req, res) => {
   try {
     const notifications = await Notification.findAll({
@@ -94,6 +114,18 @@ exports.getNotifications = async (req, res) => {
           model: EmergencyType,
           as: "emergencyType",
           attributes: [["emergency_id", "id"], "name", "description"],
+        },
+        {
+          model: Location,
+          as: "location",
+          attributes: [
+            "id",
+            "latitude",
+            "longitude",
+            "city",
+            "country",
+            "description",
+          ],
         },
       ],
       order: [["createdAt", "DESC"]],

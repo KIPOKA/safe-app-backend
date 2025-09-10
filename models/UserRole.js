@@ -15,7 +15,7 @@ module.exports = (sequelize) => {
         allowNull: false,
       },
       permissions: {
-        type: DataTypes.JSON, // store as JSON array
+        type: DataTypes.JSON,
         defaultValue: [],
       },
     },

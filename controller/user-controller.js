@@ -213,12 +213,12 @@ exports.updateProfile = async (req, res) => {
 exports.getAllUsers = async (req, res) => {
   try {
     const users = await User.findAll({
-      attributes: { exclude: ["password"] }, // exclude password from User table if any
+      attributes: { exclude: ["password"] },
       include: [
         {
           model: UserCredentials,
           as: "credentials",
-          attributes: ["email"], // fetch email from credentials
+          attributes: ["email"],
         },
         { model: BloodType, as: "bloodType", attributes: ["id", "type"] },
         {
@@ -282,7 +282,7 @@ exports.getUserByEmail = async (req, res) => {
 };
 
 exports.deleteUserByEmail = async (req, res) => {
-  const { email } = req.body; // email of the user to delete
+  const { email } = req.body;
 
   try {
     // 1️⃣ Find user credentials

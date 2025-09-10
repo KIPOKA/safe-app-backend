@@ -23,7 +23,12 @@ const UserCredentials = require("./UserCredentials")(sequelize);
 const Notification = require("./Notification")(sequelize);
 const EmergencyType = require("./EmergencyType")(sequelize);
 const NotificationStatus = require("./NotificationStatus")(sequelize);
-const MessageSolution = require("./MessageSolution")(sequelize); // initialize with sequelize
+const MessageSolution = require("./MessageSolution")(sequelize);
+const Location = require("./Location")(sequelize);
+const Service = require("./Service")(sequelize);
+const ServiceType = require("./ServiceType")(sequelize);
+const ChatMessage = require("./ChatMessage")(sequelize);
+const History = require("./History")(sequelize);
 
 // ==================== Associations ==================== //
 
@@ -81,6 +86,61 @@ Notification.hasMany(MessageSolution, {
   as: "solutions",
 });
 
+// ==================== Location associations ==================== //
+// Each Notification has ONE Location
+Notification.belongsTo(Location, {
+  foreignKey: "locationId",
+  as: "location",
+});
+
+// A Location can have MANY Notifications
+Location.hasMany(Notification, {
+  foreignKey: "locationId",
+  as: "notifications",
+});
+
+// ==================== Service Associations ==================== //
+// Each Service belongs to a ServiceType
+Service.belongsTo(ServiceType, { foreignKey: "serviceTypeId", as: "type" });
+ServiceType.hasMany(Service, { foreignKey: "serviceTypeId", as: "services" });
+
+// Each Service is linked to a Notification (solving that emergency)
+Service.belongsTo(Notification, {
+  foreignKey: "notificationId",
+  as: "notification",
+});
+Notification.hasMany(Service, { foreignKey: "notificationId", as: "services" });
+
+// ==================== ChatMessage Associations ==================== //
+// Each ChatMessage belongs to a Notification
+ChatMessage.belongsTo(Notification, {
+  foreignKey: "notificationId",
+  as: "notification",
+});
+
+// A Notification can have many ChatMessages
+Notification.hasMany(ChatMessage, {
+  foreignKey: "notificationId",
+  as: "chatMessages",
+});
+
+// ==================== History Associations ==================== //
+// Each history record belongs to a Notification
+History.belongsTo(Notification, {
+  foreignKey: "notificationId",
+  as: "notification",
+});
+
+// A Notification can have many history records
+Notification.hasMany(History, {
+  foreignKey: "notificationId",
+  as: "histories",
+});
+// A Notification can have many history records
+
+History.belongsTo(User, { foreignKey: "userId", as: "user" });
+User.hasMany(History, { foreignKey: "userId", as: "histories" });
+
 // Export models and sequelize instance
 module.exports = {
   sequelize,
@@ -94,4 +154,7 @@ module.exports = {
   EmergencyType,
   NotificationStatus,
   MessageSolution,
+  Location,
+  ChatMessage,
+  History,
 };
